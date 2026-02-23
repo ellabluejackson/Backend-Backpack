@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routers import notes, todos, folders
+from routers import folders
 
 app = FastAPI(title="My Digital Backpack API")
 
@@ -16,8 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(notes.router)
-app.include_router(todos.router)
 app.include_router(folders.router)
 
 

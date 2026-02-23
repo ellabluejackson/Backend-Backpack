@@ -1,13 +1,15 @@
 # Backend-Backpack
 
+backend for my digital backpack project FastAPI + SQLite
 
-for backend
+main.py has the app and CORS, database.py does get_db and init_db. routers folder has folders.
 
-FastAPI + SQLite. main.py has the app and CORS, database.py is for get_db and init_db, routers have notes/todos/folders for far. .
+to run it:
 
-4 running it:
+cd Backend-Backpack
+pip install -r files/requirements.txt  (or pip3)
+uvicorn files.main:app --reload
 
-cd Backend
-pip install -r requirements.txt (or pip3)
-uvicorn main:app --reload
-open http://127.0.0.1:8000/docs
+then open http://127.0.0.1:8000/docs for the api docs
+
+
