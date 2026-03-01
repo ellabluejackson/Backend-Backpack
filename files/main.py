@@ -1,10 +1,10 @@
-#fastapi  connects the routers and runs init_db on startup
+#fastapi  connects the routers and runs init_db 
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routers import folders
+from routers import folders, todo
 
 app = FastAPI(title="My Digital Backpack API")
 
@@ -17,12 +17,11 @@ app.add_middleware(
 )
 
 app.include_router(folders.router)
-
+app.include_router(todo.router)
 
 @app.on_event("startup")
 def startup():
     init_db()
-
 
 @app.get("/")
 def root():
