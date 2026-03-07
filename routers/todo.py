@@ -1,4 +1,4 @@
-# todos fast API
+# todos - list, get one, add, mark done, delete
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ def _one(conn, todo_id):
 
 @router.get("")
 def get_todos():
+    # get all todos
     conn = get_db()
     rows = conn.execute("SELECT id, text, done FROM todos").fetchall()
     conn.close()
@@ -37,6 +38,7 @@ def get_todo(todo_id: int):
 
 @router.post("")
 def create_todo(todo: TodoIn):
+    # add a new todo
     conn = get_db()
     conn.execute("INSERT INTO todos (text) VALUES (?)", (todo.text,))
     conn.commit()
@@ -47,6 +49,7 @@ def create_todo(todo: TodoIn):
 
 @router.patch("/{todo_id}")
 def update_todo(todo_id: int, done: bool | None = None):
+    # mark done or not (pass ?done=true or ?done=false)
     conn = get_db()
     try:
         _one(conn, todo_id)
@@ -60,6 +63,7 @@ def update_todo(todo_id: int, done: bool | None = None):
 
 @router.delete("/{todo_id}")
 def delete_todo(todo_id: int):
+    # delete a todo
     conn = get_db()
     cur = conn.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
     conn.commit()

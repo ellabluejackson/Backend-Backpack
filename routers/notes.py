@@ -1,4 +1,4 @@
-# notes API
+# notes - create read update delete
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ class NoteIn(BaseModel):
 
 @router.get("")
 def list_notes(db=Depends(get_db)):
+    # get all notes
     rows = db.execute("SELECT id, title, content FROM notes ORDER BY id").fetchall()
     db.close()
     return [dict(r) for r in rows]
@@ -30,6 +31,7 @@ def get_note(note_id: int, db=Depends(get_db)):
 
 @router.post("")
 def create_note(note: NoteIn, db=Depends(get_db)):
+    # create a new note
     db.execute("INSERT INTO notes (title, content) VALUES (?, ?)", (note.title, note.content))
     db.commit()
     row = db.execute(
@@ -41,6 +43,7 @@ def create_note(note: NoteIn, db=Depends(get_db)):
 
 @router.put("/{note_id}")
 def update_note(note_id: int, note: NoteIn, db=Depends(get_db)):
+    # update title and content
     cur = db.execute(
         "UPDATE notes SET title = ?, content = ? WHERE id = ?",
         (note.title, note.content, note_id),
@@ -56,6 +59,7 @@ def update_note(note_id: int, note: NoteIn, db=Depends(get_db)):
 
 @router.delete("/{note_id}")
 def delete_note(note_id: int, db=Depends(get_db)):
+    # delete one note
     cur = db.execute("DELETE FROM notes WHERE id = ?", (note_id,))
     db.commit()
     db.close()
