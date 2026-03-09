@@ -30,6 +30,16 @@ def _descendant_ids(conn, folder_id: int) -> set[int]:
     return out
 
 
+def _delete_folder_and_contents(conn, folder_id: int):
+    # delete notes and todos in this folder, then subfolders, then the folder
+    conn.execute("DELETE FROM notes WHERE folder_id = ?", (folder_id,))
+    conn.execute("DELETE FROM todos WHERE folder_id = ?", (folder_id,))
+    rows = conn.execute("SELECT id FROM folders WHERE parent_id = ?", (folder_id,)).fetchall()
+    for r in rows:
+        _delete_folder_and_contents(conn, r["id"])
+    conn.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
+
+
 @router.get("")
 def list_folders(db=Depends(get_db)):
     # get all folders, each has parent_id (null = top level)
@@ -101,19 +111,12 @@ def update_folder(folder_id: int, body: FolderUpdate, db=Depends(get_db)):
 
 @router.delete("/{folder_id}")
 def delete_folder(folder_id: int, db=Depends(get_db)):
-    # only delete if it has no subfolders
-    has_child = db.execute(
-        "SELECT id FROM folders WHERE parent_id = ? LIMIT 1", (folder_id,)
-    ).fetchone()
-    if has_child:
+    # delete folder and everything in it (notes, todos, subfolders and their contents)
+    row = db.execute("SELECT id FROM folders WHERE id = ?", (folder_id,)).fetchone()
+    if not row:
         db.close()
-        raise HTTPException(
-            status_code=409,
-            detail="Folder has subfolders – delete or move them first",
-        )
-    cur = db.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
+        raise HTTPException(status_code=404, detail="Folder not found")
+    _delete_folder_and_contents(db, folder_id)
     db.commit()
     db.close()
-    if cur.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Folder not found")
     return {"ok": True}
