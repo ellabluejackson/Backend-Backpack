@@ -18,12 +18,14 @@ def init_db():
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            content TEXT DEFAULT ''
+            content TEXT DEFAULT '',
+            folder_id INTEGER
         );
         CREATE TABLE IF NOT EXISTS todos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
-            done INTEGER DEFAULT 0
+            done INTEGER DEFAULT 0,
+            folder_id INTEGER
         );
         CREATE TABLE IF NOT EXISTS folders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,9 +33,17 @@ def init_db():
             parent_id INTEGER   -- which folder this is in, null = top level
         );
     """)
-    # if we already had folders table without parent_id, add the column
+    # if we already had these tables without new columns, add them
     try:
         conn.execute("ALTER TABLE folders ADD COLUMN parent_id INTEGER")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE notes ADD COLUMN folder_id INTEGER")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE todos ADD COLUMN folder_id INTEGER")
     except sqlite3.OperationalError:
         pass
     #need to add another one for game
