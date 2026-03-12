@@ -18,7 +18,7 @@ class FolderUpdate(BaseModel):
 
 
 def _descendant_ids(conn, folder_id: int) -> set[int]:
-    # get all ids of folders inside this one (so we dont create a loop when moving)
+    # get all ids of folders inside this one 
     out = set()
     stack = [folder_id]
     while stack:
@@ -31,9 +31,10 @@ def _descendant_ids(conn, folder_id: int) -> set[int]:
 
 
 def _delete_folder_and_contents(conn, folder_id: int):
-    # delete notes and todos in this folder, then subfolders, then the folder
+    # delete notes, todos, flashcards in this folder, then subfolders, then the folder
     conn.execute("DELETE FROM notes WHERE folder_id = ?", (folder_id,))
     conn.execute("DELETE FROM todos WHERE folder_id = ?", (folder_id,))
+    conn.execute("DELETE FROM flashcards WHERE folder_id = ?", (folder_id,))
     rows = conn.execute("SELECT id FROM folders WHERE parent_id = ?", (folder_id,)).fetchall()
     for r in rows:
         _delete_folder_and_contents(conn, r["id"])

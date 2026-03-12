@@ -32,6 +32,12 @@ def init_db():
             name TEXT NOT NULL,
             parent_id INTEGER   -- which folder this is in, null = top level
         );
+        CREATE TABLE IF NOT EXISTS flashcards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            front TEXT NOT NULL,
+            back TEXT NOT NULL,
+            folder_id INTEGER
+        );
     """)
     # if we already had these tables without new columns, add them
     try:
