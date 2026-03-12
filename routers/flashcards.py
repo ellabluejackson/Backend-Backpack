@@ -86,3 +86,4 @@ def delete_flashcard(card_id: int, db=Depends(get_db)):
     if cur.rowcount == 0:
         raise HTTPException(status_code=404, detail="Flashcard not found")
     return {"ok": True}
+ 
