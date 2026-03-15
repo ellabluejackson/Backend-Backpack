@@ -7,13 +7,18 @@ DB_PATH = Path(__file__).parent / "backpack.db"
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    """Yield a new DB connection per request. check_same_thread=False so FastAPI's thread pool can use it."""
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def init_db():
-    conn = get_db()
+    """Create tables at startup. Uses its own connection (get_db is a generator for request scope)."""
+    conn = sqlite3.connect(DB_PATH)
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,6 +57,10 @@ def init_db():
         conn.execute("ALTER TABLE todos ADD COLUMN folder_id INTEGER")
     except sqlite3.OperationalError:
         pass
-    #need to add another one for game
+    try:
+        conn.execute("ALTER TABLE folders ADD COLUMN is_flashcard_set INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+    # need to add another one for game
     conn.commit()
     conn.close()

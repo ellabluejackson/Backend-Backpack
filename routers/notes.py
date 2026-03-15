@@ -17,14 +17,12 @@ class NoteIn(BaseModel):
 def list_notes(db=Depends(get_db)):
     # get all notes (each has folder_id, null = not in a folder)
     rows = db.execute("SELECT id, title, content, folder_id FROM notes ORDER BY id").fetchall()
-    db.close()
     return [dict(r) for r in rows]
 
 
 @router.get("/{note_id}")
 def get_note(note_id: int, db=Depends(get_db)):
     row = db.execute("SELECT id, title, content, folder_id FROM notes WHERE id = ?", (note_id,)).fetchone()
-    db.close()
     if not row:
         raise HTTPException(status_code=404, detail="Note not found")
     return dict(row)
@@ -36,7 +34,6 @@ def create_note(note: NoteIn, db=Depends(get_db)):
     if note.folder_id is not None:
         r = db.execute("SELECT id FROM folders WHERE id = ?", (note.folder_id,)).fetchone()
         if not r:
-            db.close()
             raise HTTPException(status_code=404, detail="Folder not found")
     db.execute(
         "INSERT INTO notes (title, content, folder_id) VALUES (?, ?, ?)",
@@ -46,7 +43,6 @@ def create_note(note: NoteIn, db=Depends(get_db)):
     row = db.execute(
         "SELECT id, title, content, folder_id FROM notes WHERE id = last_insert_rowid()"
     ).fetchone()
-    db.close()
     return dict(row)
 
 
@@ -56,7 +52,6 @@ def update_note(note_id: int, note: NoteIn, db=Depends(get_db)):
     if note.folder_id is not None:
         r = db.execute("SELECT id FROM folders WHERE id = ?", (note.folder_id,)).fetchone()
         if not r:
-            db.close()
             raise HTTPException(status_code=404, detail="Folder not found")
     cur = db.execute(
         "UPDATE notes SET title = ?, content = ?, folder_id = ? WHERE id = ?",
@@ -64,10 +59,8 @@ def update_note(note_id: int, note: NoteIn, db=Depends(get_db)):
     )
     db.commit()
     if cur.rowcount == 0:
-        db.close()
         raise HTTPException(status_code=404, detail="Note not found")
     row = db.execute("SELECT id, title, content, folder_id FROM notes WHERE id = ?", (note_id,)).fetchone()
-    db.close()
     return dict(row)
 
 
@@ -76,7 +69,6 @@ def delete_note(note_id: int, db=Depends(get_db)):
     # delete one note
     cur = db.execute("DELETE FROM notes WHERE id = ?", (note_id,))
     db.commit()
-    db.close()
     if cur.rowcount == 0:
         raise HTTPException(status_code=404, detail="Note not found")
     return {"ok": True}
