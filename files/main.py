@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routers import folders, todo, notes, flashcards
+from routers import folders, todo, notes, flashcards, auth
 
 app = FastAPI(title="My Digital Backpack API")
 
@@ -20,6 +20,7 @@ app.include_router(folders.router)
 app.include_router(todo.router)
 app.include_router(notes.router)
 app.include_router(flashcards.router)
+app.include_router(auth.router)
 
 @app.on_event("startup")
 def startup():
